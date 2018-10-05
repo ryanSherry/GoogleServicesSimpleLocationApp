@@ -89,7 +89,7 @@ public class LocationProvider implements
         if (checkPermissions((Activity)mContext)) {
 
             mFusedLocationProviderClient.flushLocations();
-            getLastLocation(mFusedLocationProviderClient);
+            getLastLocation(mFusedLocationProviderClient,mLocationManager,this);
 
             if (mLocation == null) {
                 requestLocationUpdates(mFusedLocationProviderClient, gmsLocationCallback,mLocationManager,LocationProvider.this);
@@ -155,13 +155,16 @@ public class LocationProvider implements
     }
 
     @SuppressLint("MissingPermission")
-    public void getLastLocation(final FusedLocationProviderClient fusedLocationProviderClient) {
+    public void getLastLocation(final FusedLocationProviderClient fusedLocationProviderClient, final LocationManager locationManager, final LocationListener listener) {
         fusedLocationProviderClient.getLastLocation()
                 .addOnSuccessListener(new OnSuccessListener<Location>() {
                     @Override
                     public void onSuccess(Location location) {
                         if (location != null) {
                             mLocation = location;
+                            if (mLocation != null) {
+//                                locationManager.removeUpdates(listener);
+                            }
                             onLocationChanged(location);
                         }
                     }
@@ -170,13 +173,8 @@ public class LocationProvider implements
 
     @SuppressLint("MissingPermission")
     public void requestLocationUpdates(FusedLocationProviderClient fusedLocationProviderClient, com.google.android.gms.location.LocationCallback locationCallback, LocationManager locationManager, LocationListener listener) {
-        LocationRequest mLocationRequest = new LocationRequest();
-        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-        mLocationRequest.setInterval(3000);
-        mLocationRequest.setFastestInterval(3000);
 
         if(checkPermissions((Activity)mContext)) {
-//            fusedLocationProviderClient.requestLocationUpdates(mLocationRequest, locationCallback , Looper.myLooper());
             locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, listener);
         }
     }
