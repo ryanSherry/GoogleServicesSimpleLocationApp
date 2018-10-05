@@ -8,6 +8,7 @@ import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Looper;
 import android.support.annotation.NonNull;
@@ -45,8 +46,10 @@ public class LocationProvider implements
     private LocationRequest mLocationRequest;
     FusedLocationProviderClient mFusedLocationProviderClient;
     Location mLocation;
+    private com.google.android.gms.location.LocationCallback gmsLocationCallback;
+    private LocationManager mLocationManager;
 
-    public LocationProvider(LocationCallback locationCallback, Context context, FusedLocationProviderClient fusedLocationProviderClient) {
+    public LocationProvider(LocationCallback locationCallback, Context context, FusedLocationProviderClient fusedLocationProviderClient, com.google.android.gms.location.LocationCallback gmsLocationCallback, LocationManager locationManager) {
         mGoogleApiClient =  new GoogleApiClient.Builder(context)
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
@@ -56,6 +59,8 @@ public class LocationProvider implements
         mLocationCallback = locationCallback;
         mContext = context;
         mFusedLocationProviderClient = fusedLocationProviderClient;
+        this.gmsLocationCallback = gmsLocationCallback;
+        mLocationManager = locationManager;
     }
 
     @Override
@@ -81,6 +86,16 @@ public class LocationProvider implements
     @Override
     public void onConnected(@Nullable Bundle bundle) {
 
+        if (checkPermissions((Activity)mContext)) {
+
+            mFusedLocationProviderClient.flushLocations();
+            getLastLocation(mFusedLocationProviderClient);
+
+            if (mLocation == null) {
+                requestLocationUpdates(mFusedLocationProviderClient, gmsLocationCallback,mLocationManager,LocationProvider.this);
+            }
+//            getLastLocation(mFusedLocationProviderClient);
+        }
     }
 
     @Override
@@ -140,12 +155,13 @@ public class LocationProvider implements
     }
 
     @SuppressLint("MissingPermission")
-    public void getLastLocation(FusedLocationProviderClient fusedLocationProviderClient) {
+    public void getLastLocation(final FusedLocationProviderClient fusedLocationProviderClient) {
         fusedLocationProviderClient.getLastLocation()
                 .addOnSuccessListener(new OnSuccessListener<Location>() {
                     @Override
                     public void onSuccess(Location location) {
                         if (location != null) {
+                            mLocation = location;
                             onLocationChanged(location);
                         }
                     }
@@ -153,15 +169,15 @@ public class LocationProvider implements
     }
 
     @SuppressLint("MissingPermission")
-    public void requestLocationUpdates(FusedLocationProviderClient fusedLocationProviderClient, com.google.android.gms.location.LocationCallback locationCallback) {
+    public void requestLocationUpdates(FusedLocationProviderClient fusedLocationProviderClient, com.google.android.gms.location.LocationCallback locationCallback, LocationManager locationManager, LocationListener listener) {
         LocationRequest mLocationRequest = new LocationRequest();
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-        mLocationRequest.setInterval(120000);
-        mLocationRequest.setFastestInterval(120000);
-        mLocationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
+        mLocationRequest.setInterval(3000);
+        mLocationRequest.setFastestInterval(3000);
 
         if(checkPermissions((Activity)mContext)) {
-            fusedLocationProviderClient.requestLocationUpdates(mLocationRequest, locationCallback , Looper.myLooper());
+//            fusedLocationProviderClient.requestLocationUpdates(mLocationRequest, locationCallback , Looper.myLooper());
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, listener);
         }
     }
 

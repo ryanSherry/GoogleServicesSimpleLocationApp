@@ -2,11 +2,13 @@ package simplelocationapp.example.com.googleservicessimplelocationapp;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
+import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Looper;
 import android.provider.Settings;
@@ -64,6 +66,8 @@ public class MainActivity extends AppCompatActivity implements LocationProvider.
     LocationProvider mLocationProvider;
     LocationCallback mLocationCallback;
 
+    LocationManager mLocationManager;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -75,20 +79,21 @@ public class MainActivity extends AppCompatActivity implements LocationProvider.
 
         mFusedLocationProviderClient = new FusedLocationProviderClient(this);
 
-        mLocationProvider = new LocationProvider(this,this, mFusedLocationProviderClient);
-
         mLocationCallback = new LocationCallback() {
             @Override
             public void onLocationResult(LocationResult locationResult) {
-                super.onLocationResult(locationResult);
+//                if (locationResult == null) {
+//                    return;
+//                }
                 for (Location location : locationResult.getLocations()) {
                     Timber.i("Results:" + Double.toString(location.getLatitude()) + Double.toString(location.getLongitude()));
                 }
             }
         };
 
-        getLastLocation();
-        startLocationUpdates();
+        mLocationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
+
+        mLocationProvider = new LocationProvider(this,this, mFusedLocationProviderClient,mLocationCallback, mLocationManager);
 
     }
 
@@ -104,86 +109,18 @@ public class MainActivity extends AppCompatActivity implements LocationProvider.
         mLocationProvider.disconnect(mFusedLocationProviderClient,mLocationCallback);
     }
 
-    protected void startLocationUpdates() {
-        mLocationRequest = new LocationRequest();
-        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-        mLocationRequest.setInterval(UPDATE_INTERVAL);
-        mLocationRequest.setFastestInterval(FASTEST_INTERVAL);
 
-        // Create LocationSettingsRequest object using location request
-        LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder();
-        builder.addLocationRequest(mLocationRequest);
-        LocationSettingsRequest locationSettingsRequest = builder.build();
-
-        // Check whether location settings are satisfied
-        // https://developers.google.com/android/reference/com/google/android/gms/location/SettingsClient
-        SettingsClient settingsClient = LocationServices.getSettingsClient(this);
-        settingsClient.checkLocationSettings(locationSettingsRequest);
-
-        checkPermissions();
-
-        // new Google API SDK v11 uses getFusedLocationProviderClient(this)
-//        getFusedLocationProviderClient(this).requestLocationUpdates(mLocationRequest, new LocationCallback() {
-//                    @Override
-//                    public void onLocationResult(LocationResult locationResult) {
-//                        // do work here
-//                        onLocationChanged(locationResult.getLastLocation());
-//                    }
-//                },
-//                Looper.myLooper());
-    }
-
-    public void onLocationChanged(Location location) {
-        // New location has now been determined
-        String msg = "Updated Location: " +
-                Double.toString(location.getLatitude()) + "," +
-                Double.toString(location.getLongitude());
-        lattitudeText.setText(Double.toString(location.getLatitude()));
-        longitudeText.setText(Double.toString(location.getLongitude()));
-        Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
-        // You can now create a LatLng Object for use with maps
-        LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
-    }
-
-
-    public void getLastLocation() {
-        // Get last known recent location using new Google Play Services SDK (v11+)
-        FusedLocationProviderClient locationClient = getFusedLocationProviderClient(this);
-        checkPermissions();
-        locationClient.getLastLocation()
-                .addOnSuccessListener(new OnSuccessListener<Location>() {
-                    @Override
-                    public void onSuccess(Location location) {
-                        // GPS location can be null if GPS is switched off
-                        if (location != null) {
-                            onLocationChanged(location);
-                        }
-                    }
-                })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Log.d("MapDemoActivity", "Error trying to get last GPS location");
-                        e.printStackTrace();
-                    }
-                });
-    }
-
-    private boolean checkPermissions() {
-        if (ContextCompat.checkSelfPermission(this,
-                Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            return true;
-        } else {
-            requestPermissions();
-            return false;
-        }
-    }
-
-    private void requestPermissions() {
-        ActivityCompat.requestPermissions(this,
-                new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                REQUEST_PERMISSIONS_REQUEST_CODE);
-    }
+//    public void onLocationChanged(Location location) {
+//        // New location has now been determined
+//        String msg = "Updated Location: " +
+//                Double.toString(location.getLatitude()) + "," +
+//                Double.toString(location.getLongitude());
+//        lattitudeText.setText(Double.toString(location.getLatitude()));
+//        longitudeText.setText(Double.toString(location.getLongitude()));
+//        Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
+//        // You can now create a LatLng Object for use with maps
+//        LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
+//    }
 
     @Override
     public void handleNewLocation(Location location) {
