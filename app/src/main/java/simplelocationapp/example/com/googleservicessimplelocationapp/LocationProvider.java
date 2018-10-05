@@ -43,7 +43,6 @@ public class LocationProvider implements
     private LocationCallback mLocationCallback;
     private Context mContext;
     private GoogleApiClient mGoogleApiClient;
-    private LocationRequest mLocationRequest;
     FusedLocationProviderClient mFusedLocationProviderClient;
     Location mLocation;
     private com.google.android.gms.location.LocationCallback gmsLocationCallback;
@@ -88,13 +87,13 @@ public class LocationProvider implements
 
         if (checkPermissions((Activity)mContext)) {
 
-            mFusedLocationProviderClient.flushLocations();
+//            mFusedLocationProviderClient.flushLocations();
             getLastLocation(mFusedLocationProviderClient,mLocationManager,this);
 
             if (mLocation == null) {
                 requestLocationUpdates(mFusedLocationProviderClient, gmsLocationCallback,mLocationManager,LocationProvider.this);
             }
-//            getLastLocation(mFusedLocationProviderClient);
+//            getLastLocation(mFusedLocationProviderClient,mLocationManager,this);
         }
     }
 
@@ -139,8 +138,8 @@ public class LocationProvider implements
     }
 
     public boolean checkPermissions(Activity activity) {
-        if (ContextCompat.checkSelfPermission(activity,
-                Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+        if ((ContextCompat.checkSelfPermission(activity,
+                Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) && (ContextCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED)) {
             return true;
         } else {
             requestPermissions(activity);
@@ -150,7 +149,7 @@ public class LocationProvider implements
 
     public void requestPermissions(Activity activity) {
         ActivityCompat.requestPermissions(activity,
-                new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                new String[]{Manifest.permission.ACCESS_FINE_LOCATION,Manifest.permission.ACCESS_COARSE_LOCATION},
                 REQUEST_PERMISSIONS_REQUEST_CODE);
     }
 
@@ -162,9 +161,7 @@ public class LocationProvider implements
                     public void onSuccess(Location location) {
                         if (location != null) {
                             mLocation = location;
-                            if (mLocation != null) {
 //                                locationManager.removeUpdates(listener);
-                            }
                             onLocationChanged(location);
                         }
                     }
@@ -174,8 +171,14 @@ public class LocationProvider implements
     @SuppressLint("MissingPermission")
     public void requestLocationUpdates(FusedLocationProviderClient fusedLocationProviderClient, com.google.android.gms.location.LocationCallback locationCallback, LocationManager locationManager, LocationListener listener) {
 
+        LocationRequest locationRequest = new LocationRequest();
+        locationRequest.setPriority(LocationRequest.PRIORITY_LOW_POWER);
+        locationRequest.setFastestInterval(0);
+        locationRequest.setNumUpdates(1);
+
         if(checkPermissions((Activity)mContext)) {
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, listener);
+//            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, listener);
+            fusedLocationProviderClient.requestLocationUpdates(locationRequest,locationCallback,null);
         }
     }
 

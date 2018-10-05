@@ -53,6 +53,7 @@ public class MainActivity extends AppCompatActivity implements LocationProvider.
                 }
                 for (Location location : locationResult.getLocations()) {
                     Timber.i("Results:" + Double.toString(location.getLatitude()) + Double.toString(location.getLongitude()));
+                    //Do stuff here like save location to preferences
                 }
             }
         };
