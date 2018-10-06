@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:id="@+id/settings_activity_root_view">
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+        android:id="@+id/location_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Location for Weather Data:"/>
+
+        <TextView
+            android:id="@+id/location_result"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="San Francisco, CA"/>
+
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/longitude_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Longitude:"/>
+
+    <TextView
+        android:id="@+id/longitude_result"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
+    <TextView
+        android:id="@+id/latitude_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Latitude:"/>
+
+    <TextView
+        android:id="@+id/latitude_result"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
+    <Button
+        android:id="@+id/updateLocation"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Update Location"/>
+
+</LinearLayout>
